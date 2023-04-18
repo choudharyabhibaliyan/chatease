@@ -1,7 +1,7 @@
 package org.durga.config.security;
 
-import org.durga.user_service.service.CustomUserDetailsService;
-import org.durga.user_service.util.JWTAuthenticationFilter;
+import org.durga.service.CustomUserDetailsService;
+import org.durga.utilites.JWTAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,8 +15,6 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import javax.servlet.Filter;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
@@ -27,12 +25,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/swagger-ui/**",
             "/webjars/**",
             "/actuator",
-            "/token"
-    };
+            "/token",
+            "/**"
+        };
+
+        @Autowired CrosCustomizer crosCustomizer;
+
     @Autowired
     private JWTAuthenticationFilter jwtfilter;
     @Autowired
     private CustomUserDetailsService customUserDetail;
+
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -47,9 +50,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers(PUBLIC_URLS).permitAll()
                 .anyRequest().authenticated()
-                .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http
                 .addFilterBefore(jwtfilter, UsernamePasswordAuthenticationFilter.class);
+
+        crosCustomizer.corsCustomizer(http);
 
     }
 
